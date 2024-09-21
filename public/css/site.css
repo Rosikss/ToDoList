@@ -1,0 +1,16 @@
+.dragspace{
+    background-color:antiquewhite;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+.draggable {
+    padding: 1rem;
+    background-color: white;
+    border: 1px solid #dadada;
+    cursor: move;
+}
+
+.draggable.dragging{
+    opacity: .5;
+}

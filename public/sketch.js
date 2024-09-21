@@ -2,7 +2,7 @@ var socket;
 const globalServerPort = 3001;
 
 document.addEventListener('DOMContentLoaded', function () {
-    socket = io.connect('http://localhost:3001'); //join the server, and at the same time send a message "connection"
+    socket = io(location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://lab-web-todo-list-fugweyanb2eedga8.polandcentral-01.azurewebsites.net'); //join the server, and at the same time send a message "connection"
 
     
     function generateTaskList(tasks){

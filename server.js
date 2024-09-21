@@ -6,6 +6,9 @@ var rootServerPort = process.env.PORT || 3001;
 var rootServer = app.listen(rootServerPort);
 
 app.use(express.static('public'));
+const cors = require('cors');
+app.use(cors());
+
 
 console.log("Global socket server is running on port " + rootServerPort);
 

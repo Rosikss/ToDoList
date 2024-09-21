@@ -1,3 +1,5 @@
+const socket = io(location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://lab-web-todo-list-fugweyanb2eedga8.polandcentral-01.azurewebsites.net');
+
 document.addEventListener('FormIsReady', function () {
     const draggables = document.querySelectorAll('.draggable');
     const containers = document.querySelectorAll('.dragspace');

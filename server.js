@@ -1,16 +1,19 @@
 var express = require('express');
-var app = express();
+var http = require('http');
+var cors = require('cors');
+var socketIo = require('socket.io');
 
+var app = express();
+app.use(cors());
+app.use(express.static('public'));
 
 var rootServerPort = process.env.PORT || 3001;
-var rootServer = app.listen(rootServerPort);
+var server = http.createServer(app);
+var io = socketIo(server);
 
-app.use(express.static('public'));
-const cors = require('cors');
-app.use(cors());
-
-
-console.log("Global socket server is running on port " + rootServerPort);
+server.listen(rootServerPort, () => {
+    console.log("Global socket server is running on port " + rootServerPort);
+});
 
 var tasks = [
     { Order: 1, Name: "Task 1", Id: 1 },
@@ -18,11 +21,7 @@ var tasks = [
     { Order: 3, Name: "Task 3", Id: 3 }
 ];
 
-var socket = require('socket.io');
-
-var io = socket(rootServer);
-
-io.sockets.on('connection', newConnection);
+io.on('connection', newConnection);
 
 function newConnection(socket){
     console.log('New connection: ' + socket.id);

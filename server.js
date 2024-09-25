@@ -2,6 +2,7 @@ var express = require('express');
 var http = require('http');
 var cors = require('cors');
 var socketIo = require('socket.io');
+const { LocalStorage } = require('node-localstorage');
 
 var app = express();
 app.use(cors());
@@ -11,15 +12,28 @@ var rootServerPort = process.env.PORT || 3001;
 var server = http.createServer(app);
 var io = socketIo(server);
 
-server.listen(rootServerPort, () => {
-    console.log("Global socket server is running on port " + rootServerPort);
-});
+const localStorage = new LocalStorage('./localStorage');
 
-var tasks = [
-    { Order: 1, Name: "Task 1", Id: 1 },
-    { Order: 2, Name: "Task 2", Id: 2 },
-    { Order: 3, Name: "Task 3", Id: 3 }
-];
+function getTasks() {
+    let tasks = localStorage.getItem('tasks');
+    
+    if (!tasks) {
+        tasks = [
+            { Order: 1, Name: "Task 1", Id: 1 },
+            { Order: 2, Name: "Task 2", Id: 2 },
+            { Order: 3, Name: "Task 3", Id: 3 }
+        ];
+
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+    } else {
+        tasks = JSON.parse(tasks);
+    }
+
+    return tasks;
+}
+
+let tasks = getTasks();
+console.log(tasks);
 
 io.on('connection', newConnection);
 
@@ -38,38 +52,39 @@ function newConnection(socket){
             Id: tasks.length + 1 
         };
         tasks.push(newTask);
+        
+        localStorage.setItem('tasks', JSON.stringify(tasks));
         io.sockets.emit('update', tasks);
     }
 
     socket.on('editTask', editTask);
-    function editTask(data){
+    function editTask(data) {
         console.log('Edit task');
-        tasks.sort((a, b) => a.Order - b.Order);
         const index = tasks.findIndex(task => task.Id === data.Id);
 
         if (index !== -1) {
             tasks[index] = data;
-            io.sockets.emit('update', tasks);
 
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            io.sockets.emit('update', tasks);
         }
     }
 
     socket.on('delete', deleteTask);
-    function deleteTask(data){
+    function deleteTask(data) {
         console.log('Delete task');
 
-        tasks.sort((a, b) => a.Order - b.Order);
         const index = tasks.findIndex(task => task.Id === data.Id);
 
         if (index >= 0 && index < tasks.length) {
             tasks.splice(index, 1);
-            
-            for (var i = index; i < tasks.length; i++) {
-                tasks[i].Order = tasks[i].Order - 1;
+            for (let i = index; i < tasks.length; i++) {
+                tasks[i].Order = i + 1;
             }
+            
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            io.sockets.emit('update', tasks);
         }
-
-        io.sockets.emit('update', tasks);
     }
     
     socket.on('dragstart', dragstart);
@@ -109,3 +124,6 @@ function newConnection(socket){
         
     }
 }
+server.listen(rootServerPort, () => {
+    console.log("Global socket server is running on port " + rootServerPort);
+});
